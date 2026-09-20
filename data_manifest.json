@@ -1,0 +1,537 @@
+{
+  "schema_version": 1,
+  "manifest_updated_utc": "2026-09-20T07:08:50+00:00",
+  "source": "Yahoo Finance via yfinance; supplementary Federal Reserve daily FX fixings via FRED",
+  "source_urls": {
+    "SPY": "https://finance.yahoo.com/quote/SPY/history/",
+    "USDJPY": "https://finance.yahoo.com/quote/JPY=X/history/",
+    "EURUSD": "https://finance.yahoo.com/quote/EURUSD=X/history/",
+    "EURUSD_FRED": "https://fred.stlouisfed.org/series/DEXUSEU",
+    "USDJPY_FRED": "https://fred.stlouisfed.org/series/DEXJPUS"
+  },
+  "software": {
+    "python": "3.12.5",
+    "yfinance": "1.3.0",
+    "pandas": "2.2.2",
+    "numpy": "1.26.4",
+    "requests": "2.31.0"
+  },
+  "annualization_trading_days": 252,
+  "assets": {
+    "SPY": {
+      "symbol": "SPY",
+      "description": "SPDR S&P 500 ETF Trust",
+      "quote": "USD per ETF share",
+      "active_hours_per_day": 6.5,
+      "analysis_timezone": "America/New_York",
+      "asset_class": "equity_etf"
+    },
+    "USDJPY": {
+      "symbol": "JPY=X",
+      "description": "US dollar / Japanese yen",
+      "quote": "JPY per USD",
+      "active_hours_per_day": 24.0,
+      "analysis_timezone": "UTC",
+      "asset_class": "foreign_exchange"
+    },
+    "EURUSD": {
+      "symbol": "EURUSD=X",
+      "description": "Euro / US dollar",
+      "quote": "USD per EUR",
+      "active_hours_per_day": 24.0,
+      "analysis_timezone": "UTC",
+      "asset_class": "foreign_exchange"
+    }
+  },
+  "analysis_daily_file_keys": {
+    "SPY": "SPY_daily",
+    "USDJPY": "USDJPY_FRED_daily",
+    "EURUSD": "EURUSD_FRED_daily"
+  },
+  "conventions": {
+    "date_end": "All download end dates are exclusive.",
+    "daily_dates": "Provider-local calendar dates of daily observations.",
+    "daily_prices": "Unadjusted open/close and separately reported adjusted close; no manual backfill.",
+    "hourly_timestamps": "UTC bar-start times, not bar-end observation times.",
+    "hourly_prices": "Unadjusted OHLC; regular-hours-only for SPY.",
+    "spy_last_bar": "SPY 15:30 local bar ends at 16:00 and is only 30 minutes long.",
+    "fx_volume": "Yahoo spot-FX volume commonly equals zero and is not a traded-volume measure.",
+    "missing_data": "No forward filling, interpolation, synthetic data, or alternate-source splicing.",
+    "raw_data_retention": "Raw CSV inputs and yfinance caches are excluded from Git.",
+    "fx_daily_source": "Use standalone FRED DEXUSEU and DEXJPUS for full-period daily signatures; Yahoo daily remains a separate robustness sample. Never splice providers."
+  },
+  "files": {
+    "SPY_daily": {
+      "path": "data/raw/SPY_daily.csv",
+      "request": {
+        "symbol": "SPY",
+        "interval": "1d",
+        "start": "1999-01-01",
+        "end_exclusive": "2026-01-01"
+      },
+      "downloaded_utc": "2026-09-20T02:30:18+00:00",
+      "sha256": "8405f5c4869b8e79eb7e817d9ef731729eeabf2161c855e08a0044f3f394898a",
+      "bytes": 375958,
+      "rows": 6791,
+      "columns": [
+        "date",
+        "open",
+        "close",
+        "adj_close",
+        "dividends",
+        "splits"
+      ],
+      "observed_start": "1999-01-04",
+      "observed_end": "2025-12-31",
+      "provider_timezone": "America/New_York",
+      "diagnostics": {
+        "provider_rows": 6791,
+        "dropped_nonpositive_or_nonfinite_price_rows": 0,
+        "zero_close_change_rows": 21,
+        "weekend_rows": 0,
+        "max_absolute_adjusted_log_return": 0.13557679977354997
+      },
+      "subperiod_coverage": {
+        "2000-2007": {
+          "requested_start": "2000-01-01",
+          "requested_end_inclusive": "2007-12-31",
+          "observed_start": "2000-01-03",
+          "observed_end": "2007-12-31",
+          "rows": 2010,
+          "covers_start_year": true,
+          "covers_end_year": true
+        },
+        "2007-2014": {
+          "requested_start": "2007-01-01",
+          "requested_end_inclusive": "2014-12-31",
+          "observed_start": "2007-01-03",
+          "observed_end": "2014-12-31",
+          "rows": 2014,
+          "covers_start_year": true,
+          "covers_end_year": true
+        },
+        "2020-2025": {
+          "requested_start": "2020-01-01",
+          "requested_end_inclusive": "2025-12-31",
+          "observed_start": "2020-01-02",
+          "observed_end": "2025-12-31",
+          "rows": 1508,
+          "covers_start_year": true,
+          "covers_end_year": true
+        }
+      }
+    },
+    "SPY_hourly": {
+      "path": "data/raw/SPY_hourly.csv",
+      "request": {
+        "symbol": "SPY",
+        "interval": "1h",
+        "start": "2024-10-01",
+        "end_exclusive": "2026-01-01"
+      },
+      "downloaded_utc": "2026-09-20T02:30:18+00:00",
+      "sha256": "41e63103c0539343762d845a9d7831a184f4e61c8d0ed4976c025fd3006a5be0",
+      "bytes": 182144,
+      "rows": 2178,
+      "columns": [
+        "timestamp",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume"
+      ],
+      "observed_start": "2024-10-01T13:30:00Z",
+      "observed_end": "2025-12-31T20:30:00Z",
+      "provider_timezone": "America/New_York",
+      "diagnostics": {
+        "provider_rows": 2178,
+        "dropped_nonpositive_or_nonfinite_price_rows": 0,
+        "zero_volume_rows": 0,
+        "zero_close_change_rows": 4
+      },
+      "analysis_calendar_dates": 314,
+      "bars_per_calendar_date_min": 3,
+      "bars_per_calendar_date_median": 7.0,
+      "bars_per_calendar_date_max": 7
+    },
+    "USDJPY_daily": {
+      "path": "data/raw/USDJPY_daily.csv",
+      "request": {
+        "symbol": "JPY=X",
+        "interval": "1d",
+        "start": "1999-01-01",
+        "end_exclusive": "2026-01-01"
+      },
+      "downloaded_utc": "2026-09-20T02:30:18+00:00",
+      "sha256": "8d0cca8fe17b7823d884fd74059aa90557c484471908a9a0e58549dd83fb41c8",
+      "bytes": 394244,
+      "rows": 7011,
+      "columns": [
+        "date",
+        "open",
+        "close",
+        "adj_close",
+        "dividends",
+        "splits"
+      ],
+      "observed_start": "1999-01-01",
+      "observed_end": "2025-12-31",
+      "provider_timezone": "Europe/London",
+      "diagnostics": {
+        "provider_rows": 7011,
+        "dropped_nonpositive_or_nonfinite_price_rows": 0,
+        "zero_close_change_rows": 40,
+        "weekend_rows": 0,
+        "max_absolute_adjusted_log_return": 0.16847061815225306
+      },
+      "subperiod_coverage": {
+        "2000-2007": {
+          "requested_start": "2000-01-01",
+          "requested_end_inclusive": "2007-12-31",
+          "observed_start": "2000-01-03",
+          "observed_end": "2007-12-31",
+          "rows": 2081,
+          "covers_start_year": true,
+          "covers_end_year": true
+        },
+        "2007-2014": {
+          "requested_start": "2007-01-01",
+          "requested_end_inclusive": "2014-12-31",
+          "observed_start": "2007-01-01",
+          "observed_end": "2014-12-31",
+          "rows": 2064,
+          "covers_start_year": true,
+          "covers_end_year": true
+        },
+        "2020-2025": {
+          "requested_start": "2020-01-01",
+          "requested_end_inclusive": "2025-12-31",
+          "observed_start": "2020-01-01",
+          "observed_end": "2025-12-31",
+          "rows": 1562,
+          "covers_start_year": true,
+          "covers_end_year": true
+        }
+      }
+    },
+    "USDJPY_hourly": {
+      "path": "data/raw/USDJPY_hourly.csv",
+      "request": {
+        "symbol": "JPY=X",
+        "interval": "1h",
+        "start": "2024-10-01",
+        "end_exclusive": "2026-01-01"
+      },
+      "downloaded_utc": "2026-09-20T02:30:19+00:00",
+      "sha256": "734d5b2c7fecb3297afbbefae04a623d4c10781c83ccb4df0d01cf2ae0497338",
+      "bytes": 602657,
+      "rows": 7690,
+      "columns": [
+        "timestamp",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume"
+      ],
+      "observed_start": "2024-09-30T23:00:00Z",
+      "observed_end": "2025-12-31T21:00:00Z",
+      "provider_timezone": "Europe/London",
+      "diagnostics": {
+        "provider_rows": 7690,
+        "dropped_nonpositive_or_nonfinite_price_rows": 0,
+        "zero_volume_rows": 7690,
+        "zero_close_change_rows": 26
+      },
+      "analysis_calendar_dates": 361,
+      "bars_per_calendar_date_min": 1,
+      "bars_per_calendar_date_median": 24.0,
+      "bars_per_calendar_date_max": 24
+    },
+    "EURUSD_daily": {
+      "path": "data/raw/EURUSD_daily.csv",
+      "request": {
+        "symbol": "EURUSD=X",
+        "interval": "1d",
+        "start": "1999-01-01",
+        "end_exclusive": "2026-01-01"
+      },
+      "downloaded_utc": "2026-09-20T02:30:19+00:00",
+      "sha256": "7b9dcd368fd1a9db0f90ce6142ce81991dd622a2b06419ccf4042d49cf82b610",
+      "bytes": 324845,
+      "rows": 5730,
+      "columns": [
+        "date",
+        "open",
+        "close",
+        "adj_close",
+        "dividends",
+        "splits"
+      ],
+      "observed_start": "2003-12-01",
+      "observed_end": "2025-12-31",
+      "provider_timezone": "Europe/London",
+      "diagnostics": {
+        "provider_rows": 5730,
+        "dropped_nonpositive_or_nonfinite_price_rows": 0,
+        "zero_close_change_rows": 25,
+        "weekend_rows": 0,
+        "max_absolute_adjusted_log_return": 0.15963187440600807
+      },
+      "subperiod_coverage": {
+        "2000-2007": {
+          "requested_start": "2000-01-01",
+          "requested_end_inclusive": "2007-12-31",
+          "observed_start": "2003-12-01",
+          "observed_end": "2007-12-31",
+          "rows": 1061,
+          "covers_start_year": false,
+          "covers_end_year": true
+        },
+        "2007-2014": {
+          "requested_start": "2007-01-01",
+          "requested_end_inclusive": "2014-12-31",
+          "observed_start": "2007-01-01",
+          "observed_end": "2014-12-31",
+          "rows": 2064,
+          "covers_start_year": true,
+          "covers_end_year": true
+        },
+        "2020-2025": {
+          "requested_start": "2020-01-01",
+          "requested_end_inclusive": "2025-12-31",
+          "observed_start": "2020-01-01",
+          "observed_end": "2025-12-31",
+          "rows": 1562,
+          "covers_start_year": true,
+          "covers_end_year": true
+        }
+      }
+    },
+    "EURUSD_hourly": {
+      "path": "data/raw/EURUSD_hourly.csv",
+      "request": {
+        "symbol": "EURUSD=X",
+        "interval": "1h",
+        "start": "2024-10-01",
+        "end_exclusive": "2026-01-01"
+      },
+      "downloaded_utc": "2026-09-20T02:30:19+00:00",
+      "sha256": "33582b4301da4d49c9d8f02872e7f2a36407bb1df9eefadc44b0bea1f87911c6",
+      "bytes": 607869,
+      "rows": 7732,
+      "columns": [
+        "timestamp",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume"
+      ],
+      "observed_start": "2024-09-30T23:00:00Z",
+      "observed_end": "2025-12-31T23:00:00Z",
+      "provider_timezone": "Europe/London",
+      "diagnostics": {
+        "provider_rows": 7732,
+        "dropped_nonpositive_or_nonfinite_price_rows": 0,
+        "zero_volume_rows": 7732,
+        "zero_close_change_rows": 574
+      },
+      "analysis_calendar_dates": 361,
+      "bars_per_calendar_date_min": 1,
+      "bars_per_calendar_date_median": 24.0,
+      "bars_per_calendar_date_max": 24
+    },
+    "EURUSD_FRED_daily": {
+      "path": "data/raw/EURUSD_FRED_daily.csv",
+      "request": {
+        "series": "DEXUSEU",
+        "start": "1999-01-01",
+        "end_exclusive": "2026-01-01",
+        "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DEXUSEU&cosd=1999-01-01&coed=2025-12-31"
+      },
+      "source": "Board of Governors of the Federal Reserve System, H.10; retrieved via FRED",
+      "source_url": "https://fred.stlouisfed.org/series/DEXUSEU",
+      "downloaded_utc": "2026-09-20T02:30:20+00:00",
+      "sha256": "394ffb2a12b06638649275fd84918357594d4aabbcae52ccd89a5fd86cb7f07b",
+      "bytes": 201469,
+      "rows": 6770,
+      "columns": [
+        "date",
+        "open",
+        "close",
+        "adj_close",
+        "dividends",
+        "splits"
+      ],
+      "observed_start": "1999-01-04",
+      "observed_end": "2025-12-31",
+      "provider_timezone": "America/New_York",
+      "measurement": "Noon buying rates in New York City for cable transfers payable in foreign currencies",
+      "quote": "USD per EUR",
+      "column_semantics": {
+        "close": "New York noon buying rate, not a daily exchange closing price",
+        "adj_close": "Same noon rate; spot FX has no equity dividend/split adjustment",
+        "open": "Missing: source reports one daily fixing, no opening price"
+      },
+      "diagnostics": {
+        "provider_rows": 7043,
+        "dropped_missing_or_invalid_fixings": 273,
+        "zero_close_change_rows": 61,
+        "max_absolute_log_return": 0.04620792200427126
+      },
+      "subperiod_coverage": {
+        "2000-2007": {
+          "requested_start": "2000-01-01",
+          "requested_end_inclusive": "2007-12-31",
+          "observed_start": "2000-01-03",
+          "observed_end": "2007-12-31",
+          "rows": 2013,
+          "covers_start_year": true,
+          "covers_end_year": true
+        },
+        "2007-2014": {
+          "requested_start": "2007-01-01",
+          "requested_end_inclusive": "2014-12-31",
+          "observed_start": "2007-01-02",
+          "observed_end": "2014-12-31",
+          "rows": 2011,
+          "covers_start_year": true,
+          "covers_end_year": true
+        },
+        "2020-2025": {
+          "requested_start": "2020-01-01",
+          "requested_end_inclusive": "2025-12-31",
+          "observed_start": "2020-01-02",
+          "observed_end": "2025-12-31",
+          "rows": 1499,
+          "covers_start_year": true,
+          "covers_end_year": true
+        }
+      },
+      "listed_provider_attempt": {
+        "url": "https://data.nasdaq.com/api/v3/datasets/FRED/DEXUSEU.csv?start_date=1999-01-01&end_date=2025-12-31",
+        "http_status": 403,
+        "resolution": "Accessed the same Federal Reserve series directly from its public FRED distributor",
+        "checked_date_utc": "2026-09-20"
+      }
+    },
+    "USDJPY_FRED_daily": {
+      "path": "data/raw/USDJPY_FRED_daily.csv",
+      "request": {
+        "series": "DEXJPUS",
+        "start": "1999-01-01",
+        "end_exclusive": "2026-01-01",
+        "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DEXJPUS&cosd=1999-01-01&coed=2025-12-31"
+      },
+      "source": "Board of Governors of the Federal Reserve System, H.10; retrieved via FRED",
+      "source_url": "https://fred.stlouisfed.org/series/DEXJPUS",
+      "downloaded_utc": "2026-09-20T07:07:09+00:00",
+      "sha256": "7d16e4b581de8e5c47cd0ade4d6cd6c667229fd06330883e89577137287c9b47",
+      "bytes": 198883,
+      "rows": 6770,
+      "columns": [
+        "date",
+        "open",
+        "close",
+        "adj_close",
+        "dividends",
+        "splits"
+      ],
+      "observed_start": "1999-01-04",
+      "observed_end": "2025-12-31",
+      "provider_timezone": "America/New_York",
+      "measurement": "Noon buying rates in New York City for cable transfers payable in foreign currencies",
+      "quote": "JPY per USD",
+      "column_semantics": {
+        "close": "New York noon buying rate, not a daily exchange closing price",
+        "adj_close": "Same noon rate; spot FX has no equity dividend/split adjustment",
+        "open": "Missing: source reports one daily fixing, no opening price"
+      },
+      "diagnostics": {
+        "provider_rows": 7043,
+        "dropped_missing_or_invalid_fixings": 273,
+        "zero_close_change_rows": 55,
+        "max_absolute_log_return": 0.05215647959436165
+      },
+      "subperiod_coverage": {
+        "2000-2007": {
+          "requested_start": "2000-01-01",
+          "requested_end_inclusive": "2007-12-31",
+          "observed_start": "2000-01-03",
+          "observed_end": "2007-12-31",
+          "rows": 2013,
+          "covers_start_year": true,
+          "covers_end_year": true
+        },
+        "2007-2014": {
+          "requested_start": "2007-01-01",
+          "requested_end_inclusive": "2014-12-31",
+          "observed_start": "2007-01-02",
+          "observed_end": "2014-12-31",
+          "rows": 2011,
+          "covers_start_year": true,
+          "covers_end_year": true
+        },
+        "2020-2025": {
+          "requested_start": "2020-01-01",
+          "requested_end_inclusive": "2025-12-31",
+          "observed_start": "2020-01-02",
+          "observed_end": "2025-12-31",
+          "rows": 1499,
+          "covers_start_year": true,
+          "covers_end_year": true
+        }
+      }
+    }
+  },
+  "warnings": [
+    "Yahoo may revise adjusted prices; SHA256 fingerprints identify the exact local inputs.",
+    "Yahoo's rolling intraday-retention limit prevents guaranteed future re-downloads of this fixed sample.",
+    "EURUSD 2000-2007 has partial coverage: 2003-12-01 through 2007-12-31; all period labels must disclose this actual sample.",
+    "FRED supplements the assignment's listed data providers because Nasdaq Data Link returned HTTP403 and Yahoo EUR/USD begins in 2003. Main daily FX signatures use New York noon fixings; Yahoo hourly FX uses provider spot quotes. Cross-frequency differences may partly reflect different fixing conventions. Yahoo daily EUR/USD and USD/JPY both contain suspicious isolated spikes on 2008-12-08, retained untouched in downloaded data but avoided in the main daily analysis by using standalone FRED series."
+  ],
+  "quality_audit": {
+    "method": "Compare standalone provider levels by calendar date; inspect absolute daily log returns.",
+    "interpretation": "Yahoo and FRED quote different observation times; discrepancies are review flags, not proven errors.",
+    "price_discrepancy_log_threshold": 0.05,
+    "recent_return_log_threshold": 0.05,
+    "recent_sample_start": "2020-01-01",
+    "recent_sample_end": "2025-12-31",
+    "assets": {
+      "EURUSD": {
+        "overlapping_daily_dates": 5505,
+        "level_discrepancy_flag_count": 5,
+        "level_discrepancy_flag_dates": [
+          "2008-01-08",
+          "2008-02-08",
+          "2008-09-08",
+          "2008-10-08",
+          "2008-12-08"
+        ],
+        "recent_yahoo_return_count": 1562,
+        "recent_yahoo_absolute_log_return_above_5pct_count": 0,
+        "recent_yahoo_max_absolute_log_return": 0.02814408077541368,
+        "recent_yahoo_max_absolute_log_return_date": "2020-03-20",
+        "all_sample_fred_max_absolute_log_return": 0.04620792200427126
+      },
+      "USDJPY": {
+        "overlapping_daily_dates": 6739,
+        "level_discrepancy_flag_count": 3,
+        "level_discrepancy_flag_dates": [
+          "2008-04-08",
+          "2008-10-08",
+          "2008-12-08"
+        ],
+        "recent_yahoo_return_count": 1562,
+        "recent_yahoo_absolute_log_return_above_5pct_count": 0,
+        "recent_yahoo_max_absolute_log_return": 0.03796100025092297,
+        "recent_yahoo_max_absolute_log_return_date": "2022-12-21",
+        "all_sample_fred_max_absolute_log_return": 0.05215647959436165
+      }
+    },
+    "local_evidence_path": "data/data_quality_audit.csv",
+    "local_evidence_sha256": "8c4194e73fd659169ae60a417cb258c625788e06df3f05649c470bfe9c1fc77c"
+  }
+}
