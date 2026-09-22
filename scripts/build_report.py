@@ -44,7 +44,7 @@ def main():
     for _,r in audit[audit.frequency.eq('intraday')].iterrows():
         rows.append([names[r.asset],f'{r.n_prices:,}',str(r.retained_sessions),str(r.rejected_sessions),str(r.n_rolling_windows),
                      f'{int(r.min_window_sessions)}--{int(r.max_window_sessions)}'])
-    table('intraday_coverage',['Asset','Raw bars','Retained days','Excluded days','Windows','Days/window'],rows,'lrrrrr')
+    table('intraday_coverage',['Asset','In-range bars','Retained days','Excluded days','Windows','Days/window'],rows,'lrrrrr')
     rows=[]
     for asset,g in intra.groupby('asset',sort=False):
         v=g.set_index('hours').vol

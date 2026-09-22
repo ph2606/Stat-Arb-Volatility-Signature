@@ -38,13 +38,15 @@ This notebook implements the daily and intraday volatility signatures, their
 rolling distributions, and a self-financing frequency-arbitrage strategy.
 The accompanying LaTeX report develops the economic interpretation.
 All tables and figures below are generated from the downloaded observations.
-See `AI_USE.md` for the disclosure of assistance.
 
 ## 1. Reproducible analysis and data coverage
 
 Execute the notebook from the repository root after following the README's
 data-acquisition instructions. Source responses and derived data remain local;
-saved notebook outputs preserve the analyzed results. The data audit records
+saved notebook outputs preserve the analyzed results. Before writing results,
+the analysis checks all eight input hashes and requires the documented daily
+FX sources. It clips hourly timestamps to the stated UTC interval before
+determining six-month rolling-window eligibility. The data audit records
 actual sample coverage, including the shorter available intraday history.
 """)
     code(r"""
@@ -256,6 +258,8 @@ At the slow reset, both legs rebalance and their net holding is zero. The
 orientation $s_t$ uses a trailing 252-return volatility comparison formed
 strictly before the current execution price. Both sampling grids are aligned
 to end at $t-1$. The main pair rebalances at one and five trading days.
+The orientation is determined at each slow reset and frozen until the next
+slow reset; it is not recomputed on the intervening daily rebalances.
 LVD uses $s_t=\operatorname{sign}(\widehat\sigma_{1,t-1}-\widehat\sigma_{5,t-1})$;
 HVD uses the opposite orientation. Both are reported without choosing the
 better result after observing the evaluation period.

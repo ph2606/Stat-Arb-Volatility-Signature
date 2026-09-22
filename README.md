@@ -3,7 +3,7 @@
 **Panagiotis Housos · ph2606**
 NYU · Statistical Arbitrage · Fall 2026
 
-[Read the LaTeX report](report/report.pdf) · [Open the executed notebook](volatility_signature.ipynb) · [AI-use disclosure](AI_USE.md)
+[Read the LaTeX report](report/report.pdf) · [Open the executed notebook](volatility_signature.ipynb)
 
 This homework estimates volatility signatures for SPY, USD/JPY and EUR/USD,
 summarizes their rolling distributions, and implements the two-frequency
@@ -84,7 +84,11 @@ xelatex -interaction=nonstopmode -halt-on-error report.tex
 ```
 
 The downloader reuses existing files only if their requests and hashes match
-the local manifest. `--refresh` deliberately replaces the cache. Network access
+the local manifest. The analysis also checks all eight inputs against the public
+manifest before writing results and requires the documented FRED daily FX files;
+it cannot silently substitute another provider. Hourly observations are clipped
+to the declared UTC interval before rolling-window eligibility is determined.
+`--refresh` deliberately replaces the cache. Network access
 is required for initial downloads; it is not required for analysis of existing
 inputs, tests, or report compilation once TeX packages are installed.
 
@@ -105,11 +109,9 @@ preserve this analysis. Data-provider revisions can also change later downloads.
 | `scripts/build_report.py` | Generate LaTeX tables and numerical macros from results |
 | `report/report.tex` | Authored report source |
 | `report/report.pdf` | Standalone submission report |
-| `tests/test_analysis.py` | Sixteen checks of formulas, causality, session boundaries and cash flows |
+| `tests/` | 24 checks of formulas, causality, session boundaries, cash flows and input integrity |
 
 The reference's printed profit expression uses an ending price in a holding
 applied to the preceding return. This implementation instead credits each
 price change to the previously established holding. The report explains this
 correction and the distinction between sampling frequencies and lookback lengths.
-
-Read [AI_USE.md](AI_USE.md) for an accurate description of assistance.

@@ -29,7 +29,7 @@
 {\sffamily\color{navy}\fontsize{33}{37}\selectfont\bfseries Volatility Signature\\and Frequency Arbitrage\par}
 \vspace{12pt}
 {\large Panagiotis Housos · ph2606\par}
-{\color{muted}Fall 2026 · Prepared 20 September 2026\par}
+{\color{muted}Fall 2026\par}
 \vspace{12pt}{\color{teal}\hrule height 1.5pt}\vspace{16pt}
 {\sffamily\large\bfseries Does sampling frequency reveal a tradable edge?\par}
 Annualized volatility is not invariant to the observation interval in these data. Yet a visible difference between fine and coarse volatility does not by itself produce a profitable trading strategy. The decisive test is the cash flow from positions established before the next price change, after transaction costs.
@@ -53,13 +53,13 @@ Executed notebook, Python source, tests, LaTeX source and report. Downloaded obs
 \sectiontitle{01 / DATA}{Coverage, sources and quality control}
 \textbf{Daily prices.} SPY adjusted closes come from Yahoo Finance. The two main daily currency series are Federal Reserve H.10 noon buying rates, accessed through FRED: DEXJPUS is yen per US dollar; DEXUSEU is US dollars per euro. A trading day means an observed fixing or exchange session. Missing prices are not interpolated or forward-filled. The assignment's 252-day annualization is applied to all assets.
 
-\textbf{Why supplement the named provider?} Yahoo supplies all intraday series and the strategy's daily execution prices. Its EUR/USD daily history starts in December 2003, and its older FX observations contain conspicuous isolated spikes. For example, on 8 December 2008 Yahoo reports USD/JPY at 109.24, versus the H.10 fixing of 92.77. Different fixing times normally cause differences, but this large discrepancy and immediate reversal warrant an independent series. The main daily FX analysis therefore uses each complete FRED series, without splicing vendors. Nasdaq Data Link's attempted FRED endpoint returned HTTP 403; no Bloomberg or WRDS subscription was available in this workspace. FRED is a disclosed supplementary source beyond the assignment's named providers.
+\textbf{Why supplement the named provider?} Yahoo supplies all intraday series and the strategy's daily execution prices. Its EUR/USD daily history starts in December 2003, and its older FX observations contain conspicuous isolated spikes. For example, on 8 December 2008 Yahoo reports USD/JPY at 109.24, versus the H.10 fixing of 92.77. Different fixing times normally cause differences, but this large discrepancy and immediate reversal warrant an independent series. The main daily FX analysis therefore uses each complete FRED series, without splicing vendors. Nasdaq Data Link's attempted FRED endpoint returned HTTP 403; Bloomberg and WRDS were not accessed. FRED is a disclosed supplementary source beyond the assignment's named providers.
 
 \textbf{Table 1. Actual daily sample coverage.} Windows are 252-return rolling estimates constructed entirely within each indicated subperiod.
 \begin{center}\small\input{tables/daily_coverage.tex}\end{center}
 The year 2007 deliberately appears in both requested subperiods. No return crosses a subperiod boundary. Consequently each period uses one fewer one-day return than prices. The common 1999 download start supplies separate warm-up history where needed; daily descriptive results begin in 2000.
 
-\textbf{Intraday observations.} Yahoo hourly bar timestamps identify bar starts. SPY open prices at 09:30, 10:30, \ldots, 15:30 New York time supply six exact hourly intervals. The final 15:30–16:00 bar lasts only 30 minutes and is excluded. For FX, a common 00:00–18:00 UTC span retains Monday–Friday coverage. Requiring complete 24-hour UTC days would systematically discard Fridays. All selected frequencies divide the observed span exactly.
+\textbf{Intraday observations.} Yahoo hourly bar timestamps identify bar starts. SPY open prices at 09:30, 10:30, \ldots, 15:30 New York time supply six exact hourly intervals. The final 15:30–16:00 bar lasts only 30 minutes and is excluded. For FX, a common 00:00–18:00 UTC span retains Monday–Friday coverage. Requiring complete 24-hour UTC days would systematically discard Fridays. All selected frequencies divide the observed span exactly. Provider timestamps are first restricted to the declared UTC interval, 1 October 2024 through 31 December 2025; an out-of-range partial FX bar cannot make a six-month window eligible early.
 
 \textbf{Selection and extrapolation.} An intraday day is rejected if any required hourly endpoint is missing. Equity early closes are rejected rather than stretched into full sessions. No overnight or weekend gap is treated as an hourly return. Scaling SPY's sampled six hours to $H=6.5$, and FX's 18 hours to $H=24$, extrapolates the sampled variance rate to the specified active day. Intraday seasonality makes this an assumption, not a measured whole-day variance. A separate 24-hour FX sensitivity is reported later.
 
@@ -122,7 +122,7 @@ Here $s$ uses denominator $n-1$ and demeans the pooled log returns. For second-l
 \sectiontitle{07 / INTRADAY QUALITY}{Coverage and session sensitivity}
 \textbf{Table 3. Intraday coverage.} Excluded days are observed weekdays missing at least one required endpoint; absent whole dates cannot be counted from the feed alone. The final column shows retained days per six-calendar-month window.
 \begin{center}\small\input{tables/intraday_coverage.tex}\end{center}
-Missing or shortened days reduce observations inside a window; they never extend its start backward to reach a target count. The windows span 181–184 calendar days. This distinction matters because 126 retained full FX days can cover materially longer than six months after systematic weekday exclusions.
+Missing or shortened days reduce observations inside a window; they never extend its start backward to reach a target count. The windows span 181–184 calendar days and begin on 1 April 2025. This distinction matters because 126 retained full FX days can cover materially longer than six months after systematic weekday exclusions.
 
 \textbf{Table 4. Intraday volatility by sampling interval.}
 \begin{center}\input{tables/intraday_endpoints.tex}\end{center}
@@ -205,7 +205,7 @@ Frequency-arbitrage strategy & Sections 8–10; predictable positions, cash-flow
 \bottomrule
 \end{tabularx}
 
-\textbf{Reproduction.} The README gives commands to download inputs, run the analysis, execute tests, execute the notebook and compile this report with XeLaTeX. The source manifest records requested and observed dates, provider details and SHA256 input hashes. The saved notebook embeds computed tables and figures. Market observations, caches and trading ledgers remain local. The original course documents are not republished.
+\textbf{Reproduction.} The README gives commands to download inputs, run the analysis, execute tests, execute the notebook and compile this report with XeLaTeX. The source manifest records requested and observed dates, provider details and SHA256 input hashes. Every analysis run verifies all eight inputs before writing results and requires the documented daily FX source. The saved notebook embeds computed tables and figures. Market observations, caches and trading ledgers remain local. The original course documents are not republished.
 
 \textbf{Verification.} Tests cover sample-standard-deviation arithmetic, nonoverlapping aggregation, rolling-window causality, signal timing, opposite-sign profit symmetry, exact block accounting, net turnover costs, terminal liquidation, hourly gap rejection and session boundaries. A flat price path cannot generate profit. The report's tables and headline figures are generated from the same output files used in the notebook.
 
@@ -223,6 +223,4 @@ Yahoo Finance. Historical SPY, JPY=X and EURUSD=X observations, obtained using \
 
 NYSE. \href{https://www.nyse.com/trade/equities/extended-hours-trading}{Core equity-session hours}, used to interpret the SPY hourly bar convention.
 
-\vfill
-\captiontext{AI assistance is disclosed in \texttt{AI\_USE.md}. Automated checks do not constitute independent student verification.}
 \end{document}

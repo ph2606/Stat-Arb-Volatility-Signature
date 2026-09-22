@@ -1,5 +1,6 @@
 """Reproduce every numerical result and figure from downloaded local data."""
 from pathlib import Path
+import hashlib
 import json
 import sys
 
@@ -36,17 +37,47 @@ def save(fig, name):
     plt.close(fig)
 
 
-def daily_data(asset):
-    path = ROOT/'data'/'raw'/f'{asset}_daily.csv'
-    if asset in ('EURUSD','USDJPY'):
-        candidates = [ROOT/'data'/'raw'/f'{asset}_FRED_daily.csv', ROOT/'data'/'raw'/f'{asset}_fred_daily.csv']
-        path = next((p for p in candidates if p.exists()), path)
+def verify_input_manifest(root=ROOT):
+    """Reject changed or missing inputs before any result files are overwritten."""
+    root = Path(root)
+    manifest = json.loads((root/'data_manifest.json').read_text(encoding='utf-8'))
+    required = [f'{asset}_{frequency}' for asset in ASSETS for frequency in ('daily', 'hourly')]
+    required += ['USDJPY_FRED_daily', 'EURUSD_FRED_daily']
+    for key in required:
+        entry = manifest.get('files', {}).get(key)
+        expected = f'data/raw/{key}.csv'
+        if entry is None or entry.get('path') != expected:
+            raise ValueError(f'Missing or inconsistent manifest entry: {key}')
+        path = root/expected
+        if not path.is_file():
+            raise FileNotFoundError(f'Required input missing: {expected}; run scripts/download_data.py.')
+        if hashlib.sha256(path.read_bytes()).hexdigest() != entry.get('sha256'):
+            raise ValueError(f'Input hash mismatch: {expected}; do not mix observations from different downloads.')
+    return manifest
+
+
+def daily_data(asset, root=ROOT):
+    source = f'{asset}_FRED_daily.csv' if asset in ('EURUSD', 'USDJPY') else f'{asset}_daily.csv'
+    path = Path(root)/'data'/'raw'/source
     frame = pd.read_csv(path, parse_dates=['date']).set_index('date').sort_index()
     if frame.index.has_duplicates:
         raise ValueError(f'Duplicate dates: {asset}')
     if not np.isfinite(frame['adj_close']).all() or (frame['adj_close']<=0).any():
         raise ValueError(f'Invalid prices: {asset}')
     return frame, path
+
+
+def load_hourly(asset, manifest, root=ROOT):
+    """Clip provider-local request spillover to the stated UTC analysis interval."""
+    entry = manifest['files'][f'{asset}_hourly']
+    frame = pd.read_csv(Path(root)/'data'/'raw'/f'{asset}_hourly.csv')
+    timestamps = pd.to_datetime(frame['timestamp'], utc=True)
+    start = pd.Timestamp(entry['request']['start'], tz='UTC')
+    end = pd.Timestamp(entry['request']['end_exclusive'], tz='UTC')
+    frame = frame.loc[(timestamps >= start) & (timestamps < end)].reset_index(drop=True)
+    if frame.empty:
+        raise ValueError(f'No hourly observations inside the declared analysis interval for {asset}.')
+    return frame
 
 
 def rolling_plot(stats, intraday=False):
@@ -69,6 +100,7 @@ def rolling_plot(stats, intraday=False):
 
 
 def main():
+    manifest = verify_input_manifest()
     OUT.mkdir(exist_ok=True); FIG.mkdir(parents=True,exist_ok=True); style()
     frames, signatures, distributions, audits = {}, [], [], []
     for asset in ASSETS:
@@ -116,7 +148,7 @@ def main():
     axes[0,0].legend(fontsize=7);save(fig,'daily_rolling_by_period')
     intraday, ids, session_sensitivity = [], [], []
     for asset,meta in ASSETS.items():
-        hourly=pd.read_csv(ROOT/'data'/'raw'/f'{asset}_hourly.csv')
+        hourly=load_hourly(asset,manifest)
         sig,roll,audit=intraday_analysis(hourly,meta)
         if len(roll)<2:
             raise ValueError(f'Not enough complete intraday sessions for {asset}')
