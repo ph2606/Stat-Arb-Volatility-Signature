@@ -1,0 +1,34 @@
+\clearpage
+\sectiontitle{08 / MINUTE-LEVEL DATA}{The longest retrievable minute histories}
+The instructor's clarification permits a shorter minute-level history, provided its source and dates are explicit. Accordingly, this section uses genuine Yahoo Finance one-minute and five-minute observations, with a completed-date cutoff of 23 September 2026. The usable one-minute sample spans \textbf{\MinuteOneRange}; the five-minute sample spans \textbf{\MinuteFiveRange}. These are the longest ranges retrieved at each resolution under the tested Yahoo limits, not a claim about the longest history available from every vendor.
+
+One-minute requests were split into batches of at most seven days. Recorded requests beyond the available boundaries were rejected with Yahoo's 30-day one-minute or 60-day five-minute restriction. The download manifest records the exact request bounds, responses, observed timestamps, cleaning counts and hashes. The displayed histories differ by resolution and must not be interpreted as identical market regimes.
+\exhibit{minute_signature_1m}{Figure 8. Signatures from one-minute source bars at 1, 2, 3, 5, 10, 15, 30, 60, 120, 180 and 360 minutes. The horizontal axis is logarithmic. Each estimate uses observed, nonoverlapping price paths at its stated interval.}
+\exhibit{minute_signature_5m}{Figure 9. Signatures from the longer five-minute source history, at 5, 10, 15, 30, 60, 120, 180 and 360 minutes. The notebook records return counts, rejected paths and first/last usable timestamps at every interval.}
+
+\clearpage
+\sectiontitle{09 / MINUTE-DATA VALIDATION}{Coverage, missing bars and comparable returns}
+\textbf{Table 6. Minute-data source and observed coverage.} All six series come from Yahoo Finance. Timestamps identify bar starts. Usable days contain at least one valid return at the source resolution; they need not contain a completely observed session.
+\begin{center}\small\input{tables/minute_coverage.tex}\end{center}
+The first FX raw date contains only marks outside the selected clock span; usable returns begin on the following date, as stated in Section 8.
+
+For consistency with the hourly analysis, SPY uses 09:30--15:30 New York time and FX uses 00:00--18:00 UTC. At interval $M$, the estimator is $s(r_M)\sqrt{15120H/M}$ with denominator $n-1$, $H=6.5$ for SPY and $H=24$ for FX. This retains the disclosed extrapolation from the sampled span to the full active day.
+
+The sampling grid starts at the same clock time each day. A return is admitted only if \emph{all} source-grid prices from its starting open to its ending open are observed, finite and positive. Missing interior marks invalidate the return even when both endpoints exist. Later valid blocks remain on the original grid. There is no filling, overnight bridging or substitution of a bar close for a missing open. Consequently, the number of usable returns and contributing dates can differ across frequencies; sparse coarse estimates require caution.
+
+\textbf{Table 7. Selected minute-signature estimates and coarse-sample size.}
+\begin{center}\footnotesize\input{tables/minute_endpoints.tex}\end{center}
+For example, the one-minute EUR/USD estimate uses 21 days, while its six-hour estimate uses 47 complete paths across 16 days. Changes in the curve can therefore reflect both the sampling interval and the dates surviving the missing-bar rule. Audit counts cover dates with at least one observed mark in the selected clock span.
+\textbf{Rolling-window boundary.} Neither minute snapshot contains six months of observations. Six-month rolling estimates at the new minute-only frequencies are therefore unavailable. The longer hourly sample supplies six-month means, medians and quartiles at 60, 120, 180 and 360 minutes in Sections 6--7. This implements the clarification's shorter-history allowance while preserving the original six-month window wherever sufficient history exists.
+
+\clearpage
+\sectiontitle{10 / MATCHED OBSERVATIONS}{Checking the minute-data aggregation}
+\textbf{Table 8. A comparison on identical five-minute blocks.} One-minute prices are sampled at five-minute intervals and matched to native five-minute data on the exact same start/end timestamps. This removes the different-history effect for this comparison.
+\begin{center}\footnotesize\input{tables/minute_comparison.tex}\end{center}
+Both estimates in each row have the same interval, timestamps, asset and annualization. The matched returns agree exactly in these saved inputs: their correlation is one and their mean absolute difference is zero. The full-history one-minute and five-minute curves remain separate descriptive results because their date ranges differ.
+\exhibit{minute_comparison}{Figure 10. Five-minute annualized volatility from the intersection of valid blocks in the two feeds: one-minute prices sampled every five minutes versus native five-minute prices. The exact sample and numerical agreement are reported in Table 8 and the notebook.}
+\textbf{Observed signatures.} In the one-minute source sample, EUR/USD volatility falls from 5.47\% at one minute to 4.14\% at six hours. SPY is nonmonotone: 6.76\% at one minute, 7.90\% at one hour and 7.25\% at six hours. USD/JPY is comparatively flat at 9.76\% and 9.62\% at the endpoints. There is no universal declining signature. The changing sample size and missing-path selection prevent interpreting these differences as pure microstructure effects.
+
+\textbf{Interpretation.} This check helps distinguish a sampling calculation from a change in data history or quote marks. It does not establish that a volatility difference can be traded profitably. The newly acquired minute samples describe recent intraday variation; the strategy below remains a separately specified 2020--2025 daily-frequency experiment. Its positions, parameter choices and evaluation results have not been selected using the later minute data.
+
+\textbf{Submission coverage.} Daily signatures retain all three requested historical periods. Actual minute signatures now extend from one minute to several hours using the available Yahoo histories. Genuine six-calendar-month distributions remain based on the longer hourly sample, and the limits of the shorter minute samples are stated explicitly. No earlier date range is imputed to a newer dataset.

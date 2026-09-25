@@ -71,6 +71,28 @@ def main():
     for (asset,span),g in sensitivity.groupby(['asset','observed_hours'],sort=False):
         rows.append([names[asset],str(span),str(g.n_sessions.iloc[0]),pct(g[g.hours.eq(1)].vol.iloc[0]),pct(g[g.hours.eq(6)].vol.iloc[0])])
     table('session_sensitivity',['Asset','Observed hours/day','Sessions','60-min vol.','360-min vol.'],rows)
+    minute_cov=pd.read_csv(OUT/'minute_coverage.csv')
+    minute_sig=pd.read_csv(OUT/'minute_signatures.csv')
+    minute_comp=pd.read_csv(OUT/'minute_comparison.csv')
+    def stamp(value):
+        value=pd.Timestamp(value)
+        return r'\shortstack{'+value.strftime('%Y-%m-%d')+r'\\'+value.strftime('%H:%M')+'}'
+    rows=[]
+    for _,r in minute_cov.iterrows():
+        rows.append([names[r.asset],f'{r.base_minutes}m',stamp(r.observed_first_bar_utc),
+                     stamp(r.observed_last_bar_utc),f'{r.n_bars:,}',str(r.base_sessions)])
+    table('minute_coverage',['Asset','Source grid','First bar (UTC)','Last bar (UTC)','Bars','Usable days'],rows,'llccrr')
+    rows=[]
+    for (asset,base),g in minute_sig.groupby(['asset','base_minutes'],sort=False):
+        g=g.set_index('interval_minutes')
+        vals=[pct(g.loc[m,'annualized_vol']) if m in g.index else '---' for m in [1,5,60,360]]
+        rows.append([names[asset],f'{base}m']+vals+[str(g.loc[360,'n_returns'])])
+    table('minute_endpoints',['Asset','Source grid','1-min vol.','5-min vol.','60-min vol.','360-min vol.','360-min $n$'],rows,'llrrrrr')
+    rows=[]
+    for _,r in minute_comp.iterrows():
+        rows.append([names[r.asset],f'{r.matched_returns:,}',pct(r.vol_from_1m),pct(r.vol_native_5m),
+                     f'{r.correlation:.4f}',f'{r.mean_abs_return_difference_bps:.3f}'])
+    table('minute_comparison',['Asset','Matched blocks','From 1m','Native 5m','Correlation','Mean abs. diff. (bps)'],rows)
     macros=[]
     for asset in names:
         r=metrics[(metrics.asset==asset)&(metrics.strategy=='LVD')].iloc[0]
@@ -78,8 +100,13 @@ def main():
     eur=costs[(costs.asset=='EURUSD')&(costs.slow_days==5)].set_index('cost_bps')
     be=eur.loc[0,'total_return']/(eur.loc[0,'total_return']-eur.loc[1,'total_return'])
     macros.append('\\newcommand{\\EURBreakEven}{'+f'{be:.2f}'+'}')
+    for base,label in [(1,'One'),(5,'Five')]:
+        subset=minute_cov[minute_cov.base_minutes.eq(base)]
+        first=pd.to_datetime(subset.usable_first_return_utc,utc=True).min().strftime('%d %B %Y').lstrip('0')
+        last=pd.to_datetime(subset.usable_last_return_utc,utc=True).max().strftime('%d %B %Y').lstrip('0')
+        macros.append('\\newcommand{\\Minute'+label+'Range}{'+first+'--'+last+'}')
     (REPORT/'results.tex').write_text('\n'.join(macros)+'\n',encoding='utf-8')
-    print('Generated 8 result tables and result macros from current outputs.')
+    print('Generated 11 result tables and result macros from current outputs.')
 
 
 if __name__=='__main__':main()

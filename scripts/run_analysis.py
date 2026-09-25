@@ -101,6 +101,8 @@ def rolling_plot(stats, intraday=False):
 
 def main():
     manifest = verify_input_manifest()
+    from scripts.analyze_minute_data import verify_minute_inputs, main as analyze_minutes
+    verify_minute_inputs()
     OUT.mkdir(exist_ok=True); FIG.mkdir(parents=True,exist_ok=True); style()
     frames, signatures, distributions, audits = {}, [], [], []
     for asset in ASSETS:
@@ -226,6 +228,7 @@ def main():
                          'intraday_hours':[1,2,3,6],'year_sessions':252,'fixed_notional':100000,
                          'initial_equity':100000,'cost_bps':1,'signal_lag_sessions':1}}
     (OUT/'summary.json').write_text(json.dumps(summary,indent=2,allow_nan=False,default=str),encoding='utf-8')
+    analyze_minutes()
     print(audit.to_string(index=False))
     print(metrics[['asset','strategy','total_return','cagr','sharpe_zero_rate','max_drawdown']].to_string(index=False))
 

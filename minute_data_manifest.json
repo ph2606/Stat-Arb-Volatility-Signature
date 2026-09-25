@@ -1,0 +1,703 @@
+{
+  "schema_version": 1,
+  "source": "Yahoo Finance chart API via yfinance",
+  "source_urls": {
+    "SPY": "https://finance.yahoo.com/quote/SPY/history/",
+    "USDJPY": "https://finance.yahoo.com/quote/JPY=X/history/",
+    "EURUSD": "https://finance.yahoo.com/quote/EURUSD=X/history/"
+  },
+  "api_endpoint_template": "https://query2.finance.yahoo.com/v8/finance/chart/{symbol}",
+  "software": {
+    "python": "3.12.5",
+    "yfinance": "1.3.0",
+    "pandas": "2.2.2",
+    "numpy": "1.26.4"
+  },
+  "conventions": {
+    "timestamp": "UTC ISO-8601 bar-start timestamp; OHLC refers to the following interval.",
+    "end": "Exclusive cutoff at 2026-09-24 00:00 UTC; all samples exclude the unfinished retrieval day.",
+    "prices": "Unadjusted genuine provider OHLC; SPY regular market hours only; FX quotes are not centralized trade prices.",
+    "one_minute_chunks": "Nonoverlapping UTC request intervals of at most seven days, merged in chronological order.",
+    "missing_data": "No interpolation, forward filling, synthetic observations, or provider splicing.",
+    "duplicates": "Identical duplicate bars are counted and removed; conflicting duplicates stop the download.",
+    "fx_volume": "Yahoo FX volume is commonly zero; it is not a measure of traded market volume.",
+    "raw_retention": "Raw CSV files and yfinance caches remain local and are excluded from Git.",
+    "oldest_boundary": "Starts lie just inside the rolling 30-day (1m) and 60-day (5m) windows; older short requests are recorded below."
+  },
+  "scope": "Longest windows sought from the accessible public Yahoo endpoint at acquisition, subject to observed rolling retention; no claim about subscription-provider maximum history.",
+  "warnings": [
+    "Yahoo's rolling retention and revisions prevent guaranteed later retrieval of the identical fixed snapshot.",
+    "Minute samples are a recent extension and are not observations from the assignment's historical 2000–2007, 2007–2014, or 2020–2025 windows."
+  ],
+  "availability_probes": [
+    {
+      "purpose": "Test availability beyond the observed rolling retention boundary",
+      "request": {
+        "symbol": "SPY",
+        "interval": "1m",
+        "start": "2026-08-23T21:10:00Z",
+        "end_exclusive": "2026-08-24T21:10:00Z",
+        "auto_adjust": false,
+        "prepost": false
+      },
+      "attempted_utc": "2026-09-24T21:06:16+00:00",
+      "outcome": "provider_error",
+      "rows": 0,
+      "error_type": "YFPricesMissingError",
+      "message": "$SPY: possibly delisted; no price data found  (1m 2026-08-23 21:10:00+00:00 -> 2026-08-24 21:10:00+00:00) (Yahoo error = \"1m data not available for startTime=1787519400 and endTime=1787605800. The requested range must be within the last 30 days.\")"
+    },
+    {
+      "purpose": "Test availability beyond the observed rolling retention boundary",
+      "request": {
+        "symbol": "SPY",
+        "interval": "5m",
+        "start": "2026-07-24T21:10:00Z",
+        "end_exclusive": "2026-07-25T21:10:00Z",
+        "auto_adjust": false,
+        "prepost": false
+      },
+      "attempted_utc": "2026-09-24T21:06:25+00:00",
+      "outcome": "provider_error",
+      "rows": 0,
+      "error_type": "YFPricesMissingError",
+      "message": "$SPY: possibly delisted; no price data found  (5m 2026-07-24 21:10:00+00:00 -> 2026-07-25 21:10:00+00:00) (Yahoo error = \"5m data not available for startTime=1784927400 and endTime=1785013800. The requested range must be within the last 60 days.\")"
+    },
+    {
+      "purpose": "Test availability beyond the observed rolling retention boundary",
+      "request": {
+        "symbol": "JPY=X",
+        "interval": "1m",
+        "start": "2026-08-23T21:10:00Z",
+        "end_exclusive": "2026-08-24T21:10:00Z",
+        "auto_adjust": false,
+        "prepost": false
+      },
+      "attempted_utc": "2026-09-24T21:06:26+00:00",
+      "outcome": "provider_error",
+      "rows": 0,
+      "error_type": "YFPricesMissingError",
+      "message": "$JPY=X: possibly delisted; no price data found  (1m 2026-08-23 21:10:00+00:00 -> 2026-08-24 21:10:00+00:00) (Yahoo error = \"1m data not available for startTime=1787519400 and endTime=1787605800. The requested range must be within the last 30 days.\")"
+    },
+    {
+      "purpose": "Test availability beyond the observed rolling retention boundary",
+      "request": {
+        "symbol": "JPY=X",
+        "interval": "5m",
+        "start": "2026-07-24T21:10:00Z",
+        "end_exclusive": "2026-07-25T21:10:00Z",
+        "auto_adjust": false,
+        "prepost": false
+      },
+      "attempted_utc": "2026-09-24T21:06:42+00:00",
+      "outcome": "provider_error",
+      "rows": 0,
+      "error_type": "YFPricesMissingError",
+      "message": "$JPY=X: possibly delisted; no price data found  (5m 2026-07-24 21:10:00+00:00 -> 2026-07-25 21:10:00+00:00) (Yahoo error = \"5m data not available for startTime=1784927400 and endTime=1785013800. The requested range must be within the last 60 days.\")"
+    },
+    {
+      "purpose": "Test availability beyond the observed rolling retention boundary",
+      "request": {
+        "symbol": "EURUSD=X",
+        "interval": "1m",
+        "start": "2026-08-23T21:10:00Z",
+        "end_exclusive": "2026-08-24T21:10:00Z",
+        "auto_adjust": false,
+        "prepost": false
+      },
+      "attempted_utc": "2026-09-24T21:06:53+00:00",
+      "outcome": "provider_error",
+      "rows": 0,
+      "error_type": "YFPricesMissingError",
+      "message": "$EURUSD=X: possibly delisted; no price data found  (1m 2026-08-23 21:10:00+00:00 -> 2026-08-24 21:10:00+00:00) (Yahoo error = \"1m data not available for startTime=1787519400 and endTime=1787605800. The requested range must be within the last 30 days.\")"
+    },
+    {
+      "purpose": "Test availability beyond the observed rolling retention boundary",
+      "request": {
+        "symbol": "EURUSD=X",
+        "interval": "5m",
+        "start": "2026-07-24T21:10:00Z",
+        "end_exclusive": "2026-07-25T21:10:00Z",
+        "auto_adjust": false,
+        "prepost": false
+      },
+      "attempted_utc": "2026-09-24T21:07:16+00:00",
+      "outcome": "provider_error",
+      "rows": 0,
+      "error_type": "YFPricesMissingError",
+      "message": "$EURUSD=X: possibly delisted; no price data found  (5m 2026-07-24 21:10:00+00:00 -> 2026-07-25 21:10:00+00:00) (Yahoo error = \"5m data not available for startTime=1784927400 and endTime=1785013800. The requested range must be within the last 60 days.\")"
+    }
+  ],
+  "files": {
+    "SPY_1m": {
+      "path": "data/raw/SPY_1m.csv",
+      "request": {
+        "symbol": "SPY",
+        "interval": "1m",
+        "start": "2026-08-25T21:10:00Z",
+        "end_exclusive": "2026-09-24T00:00:00Z",
+        "auto_adjust": false,
+        "prepost": false
+      },
+      "downloaded_utc": "2026-09-24T21:06:25+00:00",
+      "source": "Yahoo Finance via yfinance",
+      "source_url": "https://finance.yahoo.com/quote/SPY/history/",
+      "sha256": "33470d5087b989b42ec1d30dc827c8a83583b155a66a8c141c5962fd40e34d1c",
+      "bytes": 636733,
+      "rows": 7799,
+      "columns": [
+        "timestamp",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume"
+      ],
+      "observed_start": "2026-08-26T13:30:00Z",
+      "observed_end": "2026-09-23T19:59:00Z",
+      "provider_timezone": "America/New_York",
+      "analysis_timezone": "America/New_York",
+      "analysis_calendar_dates": 20,
+      "bars_per_calendar_date_min": 389,
+      "bars_per_calendar_date_median": 390.0,
+      "bars_per_calendar_date_max": 390,
+      "diagnostics": {
+        "provider_rows": 7800,
+        "dropped_nonpositive_or_nonfinite_price_rows": 1,
+        "dropped_inconsistent_ohlc_rows": 0,
+        "dropped_outside_requested_range_rows": 0,
+        "dropped_identical_duplicate_rows": 0,
+        "conflicting_duplicate_rows": 0,
+        "total_dropped_rows": 1,
+        "zero_volume_rows": 3,
+        "missing_volume_rows": 0,
+        "zero_close_change_rows": 142
+      },
+      "requests": [
+        {
+          "request": {
+            "symbol": "SPY",
+            "interval": "1m",
+            "start": "2026-08-25T21:10:00Z",
+            "end_exclusive": "2026-09-01T21:10:00Z",
+            "auto_adjust": false,
+            "prepost": false
+          },
+          "attempt": 1,
+          "attempted_utc": "2026-09-24T21:06:18+00:00",
+          "outcome": "returned_rows",
+          "rows": 1950,
+          "observed_start": "2026-08-26T13:30:00Z",
+          "observed_end": "2026-09-01T19:59:00Z"
+        },
+        {
+          "request": {
+            "symbol": "SPY",
+            "interval": "1m",
+            "start": "2026-09-01T21:10:00Z",
+            "end_exclusive": "2026-09-08T21:10:00Z",
+            "auto_adjust": false,
+            "prepost": false
+          },
+          "attempt": 1,
+          "attempted_utc": "2026-09-24T21:06:18+00:00",
+          "outcome": "returned_rows",
+          "rows": 1560,
+          "observed_start": "2026-09-02T13:30:00Z",
+          "observed_end": "2026-09-08T19:59:00Z"
+        },
+        {
+          "request": {
+            "symbol": "SPY",
+            "interval": "1m",
+            "start": "2026-09-08T21:10:00Z",
+            "end_exclusive": "2026-09-15T21:10:00Z",
+            "auto_adjust": false,
+            "prepost": false
+          },
+          "attempt": 1,
+          "attempted_utc": "2026-09-24T21:06:19+00:00",
+          "outcome": "returned_rows",
+          "rows": 1950,
+          "observed_start": "2026-09-09T13:30:00Z",
+          "observed_end": "2026-09-15T19:59:00Z"
+        },
+        {
+          "request": {
+            "symbol": "SPY",
+            "interval": "1m",
+            "start": "2026-09-15T21:10:00Z",
+            "end_exclusive": "2026-09-22T21:10:00Z",
+            "auto_adjust": false,
+            "prepost": false
+          },
+          "attempt": 1,
+          "attempted_utc": "2026-09-24T21:06:19+00:00",
+          "outcome": "returned_rows",
+          "rows": 1950,
+          "observed_start": "2026-09-16T13:30:00Z",
+          "observed_end": "2026-09-22T19:59:00Z"
+        },
+        {
+          "request": {
+            "symbol": "SPY",
+            "interval": "1m",
+            "start": "2026-09-22T21:10:00Z",
+            "end_exclusive": "2026-09-24T00:00:00Z",
+            "auto_adjust": false,
+            "prepost": false
+          },
+          "attempt": 1,
+          "attempted_utc": "2026-09-24T21:06:19+00:00",
+          "outcome": "returned_rows",
+          "rows": 390,
+          "observed_start": "2026-09-23T13:30:00Z",
+          "observed_end": "2026-09-23T19:59:00Z"
+        }
+      ]
+    },
+    "SPY_5m": {
+      "path": "data/raw/SPY_5m.csv",
+      "request": {
+        "symbol": "SPY",
+        "interval": "5m",
+        "start": "2026-07-26T21:10:00Z",
+        "end_exclusive": "2026-09-24T00:00:00Z",
+        "auto_adjust": false,
+        "prepost": false
+      },
+      "downloaded_utc": "2026-09-24T21:06:26+00:00",
+      "source": "Yahoo Finance via yfinance",
+      "source_url": "https://finance.yahoo.com/quote/SPY/history/",
+      "sha256": "767079b7c78ba427de395baea447a0e9193933065379d50e43f8f8fc6ff88536",
+      "bytes": 270510,
+      "rows": 3276,
+      "columns": [
+        "timestamp",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume"
+      ],
+      "observed_start": "2026-07-27T13:30:00Z",
+      "observed_end": "2026-09-23T19:55:00Z",
+      "provider_timezone": "America/New_York",
+      "analysis_timezone": "America/New_York",
+      "analysis_calendar_dates": 42,
+      "bars_per_calendar_date_min": 78,
+      "bars_per_calendar_date_median": 78.0,
+      "bars_per_calendar_date_max": 78,
+      "diagnostics": {
+        "provider_rows": 3276,
+        "dropped_nonpositive_or_nonfinite_price_rows": 0,
+        "dropped_inconsistent_ohlc_rows": 0,
+        "dropped_outside_requested_range_rows": 0,
+        "dropped_identical_duplicate_rows": 0,
+        "conflicting_duplicate_rows": 0,
+        "total_dropped_rows": 0,
+        "zero_volume_rows": 0,
+        "missing_volume_rows": 0,
+        "zero_close_change_rows": 34
+      },
+      "requests": [
+        {
+          "request": {
+            "symbol": "SPY",
+            "interval": "5m",
+            "start": "2026-07-26T21:10:00Z",
+            "end_exclusive": "2026-09-24T00:00:00Z",
+            "auto_adjust": false,
+            "prepost": false
+          },
+          "attempt": 1,
+          "attempted_utc": "2026-09-24T21:06:25+00:00",
+          "outcome": "returned_rows",
+          "rows": 3276,
+          "observed_start": "2026-07-27T13:30:00Z",
+          "observed_end": "2026-09-23T19:55:00Z"
+        }
+      ]
+    },
+    "USDJPY_1m": {
+      "path": "data/raw/USDJPY_1m.csv",
+      "request": {
+        "symbol": "JPY=X",
+        "interval": "1m",
+        "start": "2026-08-25T21:10:00Z",
+        "end_exclusive": "2026-09-24T00:00:00Z",
+        "auto_adjust": false,
+        "prepost": false
+      },
+      "downloaded_utc": "2026-09-24T21:06:41+00:00",
+      "source": "Yahoo Finance via yfinance",
+      "source_url": "https://finance.yahoo.com/quote/JPY=X/history/",
+      "sha256": "87c0b2fada0ee54abf6128d4a1f8f9c3161118a254590398e6d2e7bfe07426d3",
+      "bytes": 2343795,
+      "rows": 29900,
+      "columns": [
+        "timestamp",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume"
+      ],
+      "observed_start": "2026-08-25T21:10:00Z",
+      "observed_end": "2026-09-23T23:59:00Z",
+      "provider_timezone": "Europe/London",
+      "analysis_timezone": "UTC",
+      "analysis_calendar_dates": 26,
+      "bars_per_calendar_date_min": 60,
+      "bars_per_calendar_date_median": 1437.0,
+      "bars_per_calendar_date_max": 1439,
+      "diagnostics": {
+        "provider_rows": 30388,
+        "dropped_nonpositive_or_nonfinite_price_rows": 488,
+        "dropped_inconsistent_ohlc_rows": 0,
+        "dropped_outside_requested_range_rows": 0,
+        "dropped_identical_duplicate_rows": 0,
+        "conflicting_duplicate_rows": 0,
+        "total_dropped_rows": 488,
+        "zero_volume_rows": 29900,
+        "missing_volume_rows": 0,
+        "zero_close_change_rows": 1124
+      },
+      "requests": [
+        {
+          "request": {
+            "symbol": "JPY=X",
+            "interval": "1m",
+            "start": "2026-08-25T21:10:00Z",
+            "end_exclusive": "2026-09-01T21:10:00Z",
+            "auto_adjust": false,
+            "prepost": false
+          },
+          "attempt": 1,
+          "attempted_utc": "2026-09-24T21:06:27+00:00",
+          "outcome": "returned_rows",
+          "rows": 7195,
+          "observed_start": "2026-08-25T21:10:00Z",
+          "observed_end": "2026-09-01T21:09:00Z"
+        },
+        {
+          "request": {
+            "symbol": "JPY=X",
+            "interval": "1m",
+            "start": "2026-09-01T21:10:00Z",
+            "end_exclusive": "2026-09-08T21:10:00Z",
+            "auto_adjust": false,
+            "prepost": false
+          },
+          "attempt": 1,
+          "attempted_utc": "2026-09-24T21:06:27+00:00",
+          "outcome": "returned_rows",
+          "rows": 7195,
+          "observed_start": "2026-09-01T21:10:00Z",
+          "observed_end": "2026-09-08T21:09:00Z"
+        },
+        {
+          "request": {
+            "symbol": "JPY=X",
+            "interval": "1m",
+            "start": "2026-09-08T21:10:00Z",
+            "end_exclusive": "2026-09-15T21:10:00Z",
+            "auto_adjust": false,
+            "prepost": false
+          },
+          "attempt": 1,
+          "attempted_utc": "2026-09-24T21:06:27+00:00",
+          "outcome": "returned_rows",
+          "rows": 7195,
+          "observed_start": "2026-09-08T21:10:00Z",
+          "observed_end": "2026-09-15T21:09:00Z"
+        },
+        {
+          "request": {
+            "symbol": "JPY=X",
+            "interval": "1m",
+            "start": "2026-09-15T21:10:00Z",
+            "end_exclusive": "2026-09-22T21:10:00Z",
+            "auto_adjust": false,
+            "prepost": false
+          },
+          "attempt": 1,
+          "attempted_utc": "2026-09-24T21:06:28+00:00",
+          "outcome": "returned_rows",
+          "rows": 7195,
+          "observed_start": "2026-09-15T21:10:00Z",
+          "observed_end": "2026-09-22T21:09:00Z"
+        },
+        {
+          "request": {
+            "symbol": "JPY=X",
+            "interval": "1m",
+            "start": "2026-09-22T21:10:00Z",
+            "end_exclusive": "2026-09-24T00:00:00Z",
+            "auto_adjust": false,
+            "prepost": false
+          },
+          "attempt": 1,
+          "attempted_utc": "2026-09-24T21:06:28+00:00",
+          "outcome": "returned_rows",
+          "rows": 1608,
+          "observed_start": "2026-09-22T21:10:00Z",
+          "observed_end": "2026-09-23T23:59:00Z"
+        }
+      ]
+    },
+    "USDJPY_5m": {
+      "path": "data/raw/USDJPY_5m.csv",
+      "request": {
+        "symbol": "JPY=X",
+        "interval": "5m",
+        "start": "2026-07-26T21:10:00Z",
+        "end_exclusive": "2026-09-24T00:00:00Z",
+        "auto_adjust": false,
+        "prepost": false
+      },
+      "downloaded_utc": "2026-09-24T21:06:52+00:00",
+      "source": "Yahoo Finance via yfinance",
+      "source_url": "https://finance.yahoo.com/quote/JPY=X/history/",
+      "sha256": "6dcad5961640429dc3dc8d0c4e38e74324d0aef69942d45ca839e662ac670947",
+      "bytes": 957089,
+      "rows": 12208,
+      "columns": [
+        "timestamp",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume"
+      ],
+      "observed_start": "2026-07-26T23:00:00Z",
+      "observed_end": "2026-09-23T23:55:00Z",
+      "provider_timezone": "Europe/London",
+      "analysis_timezone": "UTC",
+      "analysis_calendar_dates": 52,
+      "bars_per_calendar_date_min": 12,
+      "bars_per_calendar_date_median": 288.0,
+      "bars_per_calendar_date_max": 288,
+      "diagnostics": {
+        "provider_rows": 12396,
+        "dropped_nonpositive_or_nonfinite_price_rows": 188,
+        "dropped_inconsistent_ohlc_rows": 0,
+        "dropped_outside_requested_range_rows": 0,
+        "dropped_identical_duplicate_rows": 0,
+        "conflicting_duplicate_rows": 0,
+        "total_dropped_rows": 188,
+        "zero_volume_rows": 12208,
+        "missing_volume_rows": 0,
+        "zero_close_change_rows": 224
+      },
+      "requests": [
+        {
+          "request": {
+            "symbol": "JPY=X",
+            "interval": "5m",
+            "start": "2026-07-26T21:10:00Z",
+            "end_exclusive": "2026-09-24T00:00:00Z",
+            "auto_adjust": false,
+            "prepost": false
+          },
+          "attempt": 1,
+          "attempted_utc": "2026-09-24T21:06:42+00:00",
+          "outcome": "returned_rows",
+          "rows": 12396,
+          "observed_start": "2026-07-26T23:00:00Z",
+          "observed_end": "2026-09-23T23:55:00Z"
+        }
+      ]
+    },
+    "EURUSD_1m": {
+      "path": "data/raw/EURUSD_1m.csv",
+      "request": {
+        "symbol": "EURUSD=X",
+        "interval": "1m",
+        "start": "2026-08-25T21:10:00Z",
+        "end_exclusive": "2026-09-24T00:00:00Z",
+        "auto_adjust": false,
+        "prepost": false
+      },
+      "downloaded_utc": "2026-09-24T21:07:15+00:00",
+      "source": "Yahoo Finance via yfinance",
+      "source_url": "https://finance.yahoo.com/quote/EURUSD=X/history/",
+      "sha256": "64af0c265143f7adb43d6c7fdcae9f9e25d652cc2a05f949991114ca53721d46",
+      "bytes": 2357044,
+      "rows": 29996,
+      "columns": [
+        "timestamp",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume"
+      ],
+      "observed_start": "2026-08-25T21:10:00Z",
+      "observed_end": "2026-09-23T23:59:00Z",
+      "provider_timezone": "Europe/London",
+      "analysis_timezone": "UTC",
+      "analysis_calendar_dates": 26,
+      "bars_per_calendar_date_min": 60,
+      "bars_per_calendar_date_median": 1434.5,
+      "bars_per_calendar_date_max": 1439,
+      "diagnostics": {
+        "provider_rows": 30388,
+        "dropped_nonpositive_or_nonfinite_price_rows": 392,
+        "dropped_inconsistent_ohlc_rows": 0,
+        "dropped_outside_requested_range_rows": 0,
+        "dropped_identical_duplicate_rows": 0,
+        "conflicting_duplicate_rows": 0,
+        "total_dropped_rows": 392,
+        "zero_volume_rows": 29996,
+        "missing_volume_rows": 0,
+        "zero_close_change_rows": 18398
+      },
+      "requests": [
+        {
+          "request": {
+            "symbol": "EURUSD=X",
+            "interval": "1m",
+            "start": "2026-08-25T21:10:00Z",
+            "end_exclusive": "2026-09-01T21:10:00Z",
+            "auto_adjust": false,
+            "prepost": false
+          },
+          "attempt": 1,
+          "attempted_utc": "2026-09-24T21:06:53+00:00",
+          "outcome": "returned_rows",
+          "rows": 7195,
+          "observed_start": "2026-08-25T21:10:00Z",
+          "observed_end": "2026-09-01T21:09:00Z"
+        },
+        {
+          "request": {
+            "symbol": "EURUSD=X",
+            "interval": "1m",
+            "start": "2026-09-01T21:10:00Z",
+            "end_exclusive": "2026-09-08T21:10:00Z",
+            "auto_adjust": false,
+            "prepost": false
+          },
+          "attempt": 1,
+          "attempted_utc": "2026-09-24T21:06:54+00:00",
+          "outcome": "returned_rows",
+          "rows": 7195,
+          "observed_start": "2026-09-01T21:10:00Z",
+          "observed_end": "2026-09-08T21:09:00Z"
+        },
+        {
+          "request": {
+            "symbol": "EURUSD=X",
+            "interval": "1m",
+            "start": "2026-09-08T21:10:00Z",
+            "end_exclusive": "2026-09-15T21:10:00Z",
+            "auto_adjust": false,
+            "prepost": false
+          },
+          "attempt": 1,
+          "attempted_utc": "2026-09-24T21:06:55+00:00",
+          "outcome": "returned_rows",
+          "rows": 7195,
+          "observed_start": "2026-09-08T21:10:00Z",
+          "observed_end": "2026-09-15T21:09:00Z"
+        },
+        {
+          "request": {
+            "symbol": "EURUSD=X",
+            "interval": "1m",
+            "start": "2026-09-15T21:10:00Z",
+            "end_exclusive": "2026-09-22T21:10:00Z",
+            "auto_adjust": false,
+            "prepost": false
+          },
+          "attempt": 1,
+          "attempted_utc": "2026-09-24T21:06:56+00:00",
+          "outcome": "returned_rows",
+          "rows": 7195,
+          "observed_start": "2026-09-15T21:10:00Z",
+          "observed_end": "2026-09-22T21:09:00Z"
+        },
+        {
+          "request": {
+            "symbol": "EURUSD=X",
+            "interval": "1m",
+            "start": "2026-09-22T21:10:00Z",
+            "end_exclusive": "2026-09-24T00:00:00Z",
+            "auto_adjust": false,
+            "prepost": false
+          },
+          "attempt": 1,
+          "attempted_utc": "2026-09-24T21:06:57+00:00",
+          "outcome": "returned_rows",
+          "rows": 1608,
+          "observed_start": "2026-09-22T21:10:00Z",
+          "observed_end": "2026-09-23T23:59:00Z"
+        }
+      ]
+    },
+    "EURUSD_5m": {
+      "path": "data/raw/EURUSD_5m.csv",
+      "request": {
+        "symbol": "EURUSD=X",
+        "interval": "5m",
+        "start": "2026-07-26T21:10:00Z",
+        "end_exclusive": "2026-09-24T00:00:00Z",
+        "auto_adjust": false,
+        "prepost": false
+      },
+      "downloaded_utc": "2026-09-24T21:07:22+00:00",
+      "source": "Yahoo Finance via yfinance",
+      "source_url": "https://finance.yahoo.com/quote/EURUSD=X/history/",
+      "sha256": "cf324c8ed1dec6b26983d3f1bd15f0d712e2cea18abb0bd3f58fb87c1f8a2366",
+      "bytes": 962287,
+      "rows": 12252,
+      "columns": [
+        "timestamp",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume"
+      ],
+      "observed_start": "2026-07-26T23:00:00Z",
+      "observed_end": "2026-09-23T23:55:00Z",
+      "provider_timezone": "Europe/London",
+      "analysis_timezone": "UTC",
+      "analysis_calendar_dates": 52,
+      "bars_per_calendar_date_min": 12,
+      "bars_per_calendar_date_median": 288.0,
+      "bars_per_calendar_date_max": 288,
+      "diagnostics": {
+        "provider_rows": 12396,
+        "dropped_nonpositive_or_nonfinite_price_rows": 144,
+        "dropped_inconsistent_ohlc_rows": 0,
+        "dropped_outside_requested_range_rows": 0,
+        "dropped_identical_duplicate_rows": 0,
+        "conflicting_duplicate_rows": 0,
+        "total_dropped_rows": 144,
+        "zero_volume_rows": 12252,
+        "missing_volume_rows": 0,
+        "zero_close_change_rows": 4470
+      },
+      "requests": [
+        {
+          "request": {
+            "symbol": "EURUSD=X",
+            "interval": "5m",
+            "start": "2026-07-26T21:10:00Z",
+            "end_exclusive": "2026-09-24T00:00:00Z",
+            "auto_adjust": false,
+            "prepost": false
+          },
+          "attempt": 1,
+          "attempted_utc": "2026-09-24T21:07:16+00:00",
+          "outcome": "returned_rows",
+          "rows": 12396,
+          "observed_start": "2026-07-26T23:00:00Z",
+          "observed_end": "2026-09-23T23:55:00Z"
+        }
+      ]
+    }
+  },
+  "manifest_updated_utc": "2026-09-24T21:07:22+00:00"
+}

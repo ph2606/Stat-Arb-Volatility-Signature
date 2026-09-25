@@ -39,9 +39,9 @@ Annualized volatility is not invariant to the observation interval in these data
 \textbf{Principal finding.} With daily versus five-day rebalancing, fixed initial capital and a one-basis-point one-way trading cost, the 2020–2025 LVD strategy earns \textbf{\SPYLVD} on SPY, \textbf{\USDJPYLVD} on USD/JPY and \textbf{\EURUSDLVD} on EUR/USD. These are cumulative returns on initial capital, not annual returns. The EUR/USD result breaks even at approximately \textbf{\EURBreakEven\ basis points}. The evidence does not support deploying this specification as a reliable arbitrage strategy.\vspace{7pt}}}
 
 \vspace{14pt}
-\textbf{Empirical scope.} SPY provides the S\&P 500 ETF exposure. USD/JPY and EUR/USD supply two currency pairs. Daily signatures cover all intervals from one to 30 trading days, separately for 2000–2007, 2007–2014 and 2020–2025. Hourly observations cover October 2024–December 2025 and support 60-, 120-, 180- and 360-minute signatures.
+\textbf{Empirical scope.} SPY provides the S\&P 500 ETF exposure. USD/JPY and EUR/USD supply two currency pairs. Daily signatures cover all intervals from one to 30 trading days, separately for 2000–2007, 2007–2014 and 2020–2025. Genuine one-minute data cover \MinuteOneRange\ and five-minute data cover \MinuteFiveRange, with signatures extending to six hours. Longer hourly observations cover October 2024–December 2025.
 
-\textbf{Distribution analysis.} Every daily frequency has one-year rolling estimates. Every intraday frequency has exact six-calendar-month rolling estimates. Mean, median, 25th and 75th percentiles are reported and plotted.
+\textbf{Distribution analysis.} Every daily frequency has one-year rolling estimates. The longer hourly sample supplies exact six-calendar-month intraday estimates. Mean, median, 25th and 75th percentiles are reported and plotted. As permitted by the instructor's clarification, minute-level histories are shorter; they cannot support six-month rolling windows.
 
 \textbf{Implementation.} The reference's inverse-price hedge is translated into a lagged, cash-flow-based trading ledger. The study includes the opposite orientation, buy and hold, transaction costs, slower rebalancing alternatives and tests of the accounting identity.
 
@@ -63,7 +63,7 @@ The year 2007 deliberately appears in both requested subperiods. No return cross
 
 \textbf{Selection and extrapolation.} An intraday day is rejected if any required hourly endpoint is missing. Equity early closes are rejected rather than stretched into full sessions. No overnight or weekend gap is treated as an hourly return. Scaling SPY's sampled six hours to $H=6.5$, and FX's 18 hours to $H=24$, extrapolates the sampled variance rate to the specified active day. Intraday seasonality makes this an assumption, not a measured whole-day variance. A separate 24-hour FX sensitivity is reported later.
 
-\captiontext{Sources: \href{https://finance.yahoo.com/quote/SPY/history/}{Yahoo Finance}; \href{https://fred.stlouisfed.org/series/DEXJPUS}{FRED DEXJPUS}; \href{https://fred.stlouisfed.org/series/DEXUSEU}{FRED DEXUSEU}; \href{https://www.nyse.com/trade/equities/extended-hours-trading}{NYSE core-session hours}. Eight input files have SHA256 fingerprints in \texttt{data\_manifest.json}.}
+\captiontext{Sources: \href{https://finance.yahoo.com/quote/SPY/history/}{Yahoo Finance}; \href{https://fred.stlouisfed.org/series/DEXJPUS}{FRED DEXJPUS}; \href{https://fred.stlouisfed.org/series/DEXUSEU}{FRED DEXUSEU}; \href{https://www.nyse.com/trade/equities/extended-hours-trading}{NYSE core-session hours}. The daily/hourly manifest fingerprints eight inputs; \texttt{minute\_data\_manifest.json} records six additional files, detailed in Sections 8--10.}
 
 \clearpage
 \sectiontitle{02 / DAILY SIGNATURES}{Estimator and historical comparison}
@@ -114,7 +114,7 @@ For $M$ minutes, $h=M/60$ hours and $H$ active hours per day,
 \widehat\sigma_{\mathrm{ann}}(M)=s(r_M)\sqrt{\frac{15120H}{M}}
 =s(r_h)\sqrt{\frac{252H}{h}}.
 \end{equation}
-Here $s$ uses denominator $n-1$ and demeans the pooled log returns. For second-level data the corresponding factor would be $\sqrt{907200H/S}$; no second-level observations are used. The available 60-minute data permit four intervals through six hours, but cannot identify sub-hour bid–ask effects.
+Here $s$ uses denominator $n-1$ and demeans the pooled log returns. For second-level data the corresponding factor would be $\sqrt{907200H/S}$; no second-level observations are used. This longer hourly dataset permits four intervals through six hours. The separate minute datasets in Sections 8--10 extend the analysis below one hour.
 \exhibit{intraday_signature}{Figure 6. Intraday signatures. All frequencies use the same retained days and cover the same six-hour SPY or 18-hour FX span. Annualization uses $H=6.5$ for SPY and $H=24$ for FX.}
 \exhibit{intraday_rolling_distribution}{Figure 7. Rolling intraday distributions: mean, median and 25th–75th percentiles. Each estimate pools returns in $(t-6\text{ calendar months},t]$. The first window is available only after six months of source history.}
 
@@ -134,8 +134,9 @@ This sensitivity compares two practical choices: a common 18-hour span with week
 
 \textbf{Daily versus intraday.} Daily signatures include overnight and weekend price changes between observed closes or fixings. Intraday signatures exclude those gaps. Their periods also differ: the hourly feed covers only October 2024–December 2025. Federal Reserve noon fixings and Yahoo spot quotes are different observations. A difference between these curves therefore should not be attributed solely to sampling frequency.
 
+\input{minute_section.tex}
 \clearpage
-\sectiontitle{08 / TRADING RULE}{From the reference to an executable ledger}
+\sectiontitle{11 / TRADING RULE}{From the reference to an executable ledger}
 Jabłecki et al. (2014) explain that opposite static option strips cancel, leaving inverse-price underlying positions adjusted at different frequencies. Let $a$ be the latest slow reset, $f(t)$ the latest fast reset and $N$ a fixed notional. The net holding established at time $t$ is
 \begin{equation}
 q_t=s_aN\left(\frac{1}{S_{f(t)}}-\frac{1}{S_a}\right).
@@ -161,7 +162,7 @@ Only the previous holding earns the current price change and dividend $D_t$. Sim
 which uses the ending price to define a holding applied to the preceding move. It is not an executable profit formula. The ledger above avoids that timing error. LVD/HVD labels follow the option-position orientation; the paper's conflicting momentum/mean-reversion wording is not used to define trades.
 
 \clearpage
-\sectiontitle{09 / STRATEGY RESULTS}{Net cash flows, not a variance-gap proxy}
+\sectiontitle{12 / STRATEGY RESULTS}{Net cash flows, not a variance-gap proxy}
 For a complete slow block $a,\ldots,b$ with $s_a\ne0$, without dividends or costs and with daily fast resets, the exact realized trading profit is
 \begin{align}
 \frac{\Pi_{a:b}}{s_aN}
@@ -171,55 +172,55 @@ For a complete slow block $a,\ldots,b$ with $s_a\ne0$, without dividends or cost
 \end{align}
 The approximation explains the frequency-variance intuition. The exact cash-flow identity, rather than the approximation, is checked against controlled price paths in the tests.
 
-\textbf{Table 6. Evaluation over 2020–2025.} LVD and HVD use a one-basis-point one-way cost. Buy and hold is a zero-cost, zero-carry price/total-return benchmark. Annualized volatility uses daily equity returns; Sharpe assumes a zero risk-free rate. These are quote-currency returns, not a common USD portfolio.
+\textbf{Table 9. Evaluation over 2020–2025.} LVD and HVD use a one-basis-point one-way cost. Buy and hold is a zero-cost, zero-carry price/total-return benchmark. Annualized volatility uses daily equity returns; Sharpe assumes a zero risk-free rate. These are quote-currency returns, not a common USD portfolio.
 \begin{center}\small\input{tables/strategy.tex}\end{center}
-\exhibit{strategy_equity}{Figure 8. Wealth relative to initial capital. Dotted line: zero-rate cash. SPY buy and hold includes dividends; FX buy and hold is the change in the quoted exchange rate, excluding financing.}
+\exhibit{strategy_equity}{Figure 11. Wealth relative to initial capital. Dotted line: zero-rate cash. SPY buy and hold includes dividends; FX buy and hold is the change in the quoted exchange rate, excluding financing.}
 \textbf{Risk comparison.} The two inverse-price legs largely cancel, so the net strategy exposure is much smaller than buy and hold. Low volatility and a small drawdown alone are not evidence of superior efficiency. The experiment does not scale each strategy to equal volatility or select the best historical sign after observing results.
 
 \clearpage
-\sectiontitle{10 / COSTS AND CONCLUSION}{A fragile effect is not a trading mandate}
-\exhibit{strategy_costs}{Figure 9. LVD cumulative net returns for daily versus 5-, 10- and 20-day rebalancing, at 0, 1, 5 and 10 one-way basis points. The baseline is specified as daily versus five-day rebalancing; the other pairs are sensitivity checks.}
-\textbf{Table 7. Baseline cost sensitivity and break-even threshold.}
+\sectiontitle{13 / COSTS AND CONCLUSION}{A fragile effect is not a trading mandate}
+\exhibit{strategy_costs}{Figure 12. LVD cumulative net returns for daily versus 5-, 10- and 20-day rebalancing, at 0, 1, 5 and 10 one-way basis points. The baseline is specified as daily versus five-day rebalancing; the other pairs are sensitivity checks.}
+\textbf{Table 10. Baseline cost sensitivity and break-even threshold.}
 \begin{center}\small\input{tables/costs.tex}\end{center}
 With fixed notionals and unchanged holdings across cost assumptions, cumulative profit decreases linearly with proportional transaction costs. A positive break-even threshold is reported only when the zero-cost LVD profit is positive. It is an in-sample accounting threshold, not an estimate of an executable market spread.
 
-\textbf{Table 8. Baseline exposure and trading activity.} Turnover is traded quote-currency amount divided by initial capital, annualized using observed trading steps. Costs are cumulative local quote-currency units.
+\textbf{Table 11. Baseline exposure and trading activity.} Turnover is traded quote-currency amount divided by initial capital, annualized using observed trading steps. Costs are cumulative local quote-currency units.
 \begin{center}\small\input{tables/exposure.tex}\end{center}
 \textbf{Decision.} The baseline results do not justify implementing frequency arbitrage as a stand-alone trading allocation. The EUR/USD gain is small and disappears above approximately \EURBreakEven\ one-way basis points. SPY and USD/JPY do not produce positive baseline net returns. The reference's economic intuition is useful, but these results do not establish a persistent, riskless or scalable edge.
 
-\textbf{Practical limits.} Historical specifications and cost levels are descriptive sensitivities, not a genuine future holdout. No inference treats overlapping windows as independent. Vendor revisions, hourly retention limits, observation-span extrapolation, FX fixing differences, financing costs, execution delays and borrow availability remain material. The strategy should first survive a separate future sample and more realistic execution assumptions before any capital is committed.
+\textbf{Practical limits.} Historical specifications and cost levels are descriptive sensitivities, not a genuine future holdout. No inference treats overlapping windows as independent. Vendor revisions, intraday retention limits, observation-span extrapolation, FX fixing differences, financing costs, execution delays and borrow availability remain material. The strategy should first survive a separate future sample and more realistic execution assumptions before any capital is committed.
 
 \clearpage
-\sectiontitle{11 / REPRODUCIBILITY}{Submission map and references}
+\sectiontitle{14 / REPRODUCIBILITY}{Submission map and references}
 \begin{tabularx}{\linewidth}{@{}p{.27\linewidth}X@{}}
 \toprule
 Homework requirement & Location in the submission\\
 \midrule
-Daily and intraday collection & Section 1; downloader; public source manifest and hashes.\\
+Daily and intraday collection & Sections 1 and 8--10; downloaders; source manifests and hashes.\\
 Daily signature, 1–30 days & Sections 2–3; three separate graphs; all numerical frequencies in the notebook.\\
 Three historical subperiods & 2000–2007, 2007–2014 and 2020–2025, with inclusive 2007 overlap.\\
 Daily rolling statistics & Sections 4–5; 252-return windows; four statistics at every frequency.\\
-Intraday signature & Sections 6–7; 60-, 120-, 180- and 360-minute intervals with explicit session rules.\\
-Intraday rolling statistics & Exact six-calendar-month windows; all four requested statistics and session counts.\\
-Frequency-arbitrage strategy & Sections 8–10; predictable positions, cash-flow ledger, costs and sensitivity checks.\\
+Intraday signature & Sections 6–10; genuine one- and five-minute data, minute-to-six-hour signatures, source/range tables and matched-block checks.\\
+Intraday rolling statistics & Exact six-calendar-month windows on the longer hourly history; shorter minute-history limitation explicitly disclosed.\\
+Frequency-arbitrage strategy & Sections 11–13; predictable positions, cash-flow ledger, costs and sensitivity checks.\\
 \bottomrule
 \end{tabularx}
 
-\textbf{Reproduction.} The README gives commands to download inputs, run the analysis, execute tests, execute the notebook and compile this report with XeLaTeX. The source manifest records requested and observed dates, provider details and SHA256 input hashes. Every analysis run verifies all eight inputs before writing results and requires the documented daily FX source. The saved notebook embeds computed tables and figures. Market observations, caches and trading ledgers remain local. The original course documents are not republished.
+\textbf{Reproduction.} The README gives commands to download inputs, run the analysis, execute tests, execute the notebook and compile this report with XeLaTeX. Two source manifests record requested and observed dates, provider details and SHA256 hashes. Every full analysis run verifies all 14 inputs before writing results and requires the documented daily FX source. The saved notebook embeds computed tables and figures. Market observations, caches and trading ledgers remain local. The original course documents are not republished.
 
-\textbf{Verification.} Tests cover sample-standard-deviation arithmetic, nonoverlapping aggregation, rolling-window causality, signal timing, opposite-sign profit symmetry, exact block accounting, net turnover costs, terminal liquidation, hourly gap rejection and session boundaries. A flat price path cannot generate profit. The report's tables and headline figures are generated from the same output files used in the notebook.
+\textbf{Verification.} Tests cover sample-standard-deviation arithmetic, nonoverlapping aggregation, rolling-window causality, signal timing, exact block accounting, trading costs, liquidation, session boundaries, missing minute paths and matched-resolution comparisons. A flat price path cannot generate profit. The report's tables and headline figures are generated from the same output files used in the notebook.
 
-\textbf{Source and access limits.} Yahoo's hourly retention window is finite. Exact historical re-downloads may cease to be available, so hashes document the local inputs without promising permanent online reproducibility. FRED supplements the course's listed vendors for the reasons stated in Section 1. The present study cannot claim terminal-based Bloomberg or WRDS validation.
+\textbf{Source and access limits.} Yahoo's intraday retention windows are finite. Exact historical re-downloads may cease to be available, so hashes document the local inputs without promising permanent online reproducibility. FRED supplements the course's listed vendors for the reasons stated in Section 1. Bloomberg and WRDS were not accessed.
 
 \vspace{7pt}\textbf{References}
 
 Jabłecki, J., Kokoszczyński, R., Sakowski, P., Ślepaczuk, R., and Wójcik, P. (2014). \emph{Options delta hedging with no options at all}. University of Warsaw Working Paper 27/2014 (144). Supplied reference, especially Sections 2–4 and 6.2. \href{https://www.wne.uw.edu.pl/inf/wyd/WP/WNE_WP144.pdf}{Working paper}.
 
-\emph{Volatility Signature}. Supplied assignment document. Source of the sample-standard-deviation estimator, 252-day convention, required subperiods and rolling statistics.
+\emph{Volatility Signature}. Supplied assignment document: estimator, annualization, subperiods and rolling statistics. Instructor clarification: shorter minute histories are acceptable; use the longest available history and state its source and dates. Revised deadline: 30 September 2026.
 
 Board of Governors of the Federal Reserve System. H.10 foreign exchange rates, via FRED: \href{https://fred.stlouisfed.org/series/DEXJPUS}{DEXJPUS} and \href{https://fred.stlouisfed.org/series/DEXUSEU}{DEXUSEU}. Daily New York noon buying rates; historical sample ends 31 December 2025.
 
-Yahoo Finance. Historical SPY, JPY=X and EURUSD=X observations, obtained using \href{https://ranaroussi.github.io/yfinance/reference/api/yfinance.download.html}{yfinance}. Dates, exact versions and retrieval times appear in the manifest.
+Yahoo Finance. SPY, JPY=X and EURUSD=X daily, hourly and minute observations, obtained using \href{https://ranaroussi.github.io/yfinance/reference/api/yfinance.download.html}{yfinance}. Dates, software versions and retrieval times appear in the manifests.
 
 NYSE. \href{https://www.nyse.com/trade/equities/extended-hours-trading}{Core equity-session hours}, used to interpret the SPY hourly bar convention.
 

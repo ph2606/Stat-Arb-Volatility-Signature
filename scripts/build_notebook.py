@@ -44,10 +44,14 @@ All tables and figures below are generated from the downloaded observations.
 Execute the notebook from the repository root after following the README's
 data-acquisition instructions. Source responses and derived data remain local;
 saved notebook outputs preserve the analyzed results. Before writing results,
-the analysis checks all eight input hashes and requires the documented daily
+the analysis checks all 14 input hashes across the daily/hourly and minute
+manifests and requires the documented daily
 FX sources. It clips hourly timestamps to the stated UTC interval before
 determining six-month rolling-window eligibility. The data audit records
 actual sample coverage, including the shorter available intraday history.
+Following the instructor's clarification, genuine one-minute and five-minute
+observations supplement the longer hourly history, with their source and
+date ranges stated explicitly.
 """)
     code(r"""
 from pathlib import Path
@@ -102,7 +106,8 @@ early currency coverage and anomalous observations make it unsuitable for
 the complete daily comparison. The backtests instead use Yahoo's observed
 2020–2025 execution closes, with dividend cash flows handled separately.
 
-Intraday estimates use observed Yahoo hourly prices. No missing interval is
+Intraday estimates use observed Yahoo hourly, one-minute and five-minute prices.
+No missing interval is
 filled with an invented return. The daily grids count available observation
 dates: currency and equity holiday calendars differ. The assignment's
 252-session annualization is used consistently, including for currencies.
@@ -190,8 +195,9 @@ $$\widehat\sigma_h=\operatorname{sd}_{n-1}(r^{(h)})
 The equivalent minute and second formulas are
 $\operatorname{sd}(r^{(M)})\sqrt{15120H/M}$ and
 $\operatorname{sd}(r^{(s)})\sqrt{907200H/s}$. The available hourly observations
-support intervals of 1, 2, 3 and 6 hours. They do not support a claim about
-second-level or minute-level microstructure.
+support intervals of 1, 2, 3 and 6 hours over October 2024 through December 2025.
+The separate shorter-history minute analysis in Section 5 resolves sub-hour
+sampling; none of the inputs support second-level claims.
 
 For US equities, $H=6.5$. Exact hourly equity marks run from 09:30 to 15:30
 New York time. The last 30 minutes are excluded from hourly returns, while
@@ -245,7 +251,98 @@ The omitted equity intervals and the shorter available history limit a direct
 comparison with full-day estimates. A trading decision needs the explicit
 cash-flow test below.
 
-## 5. Frequency-arbitrage implementation
+## 5. Genuine minute-level data under the instructor's clarification
+
+The instructor permits shorter minute-level history when its source and date
+range are explicit. Yahoo Finance, accessed through `yfinance`, supplied the
+longest one-minute and five-minute histories retrieved under the tested source
+limits. Recorded older requests were rejected under Yahoo's 30-day one-minute
+and 60-day five-minute restrictions. One-minute downloads were split into
+batches of at most seven days. The complete-date cutoff is September 23, 2026;
+these are the longest retrieved histories from this source, not a claim about
+what every vendor offers.
+
+**Usable return dates:** August 26 through September 23, 2026 for one-minute
+source bars, and July 27 through September 23, 2026 for five-minute source bars.
+The raw FX feeds begin on the preceding date after the selected 00:00-18:00 UTC
+span. The coverage table distinguishes observed bar timestamps from usable
+return timestamps, so those extra bars do not imply an extra analyzed session.
+Exact request bounds, acquisition responses, cleaning and hashes are preserved
+in `minute_data_manifest.json`.
+""")
+    code(r"""
+minute_coverage = table('minute_coverage')
+""")
+    md(r"""
+### 5.1. Estimator, observed blocks and session coverage
+
+Yahoo timestamps identify bar starts, so each endpoint uses the bar's **open**.
+The one-minute input supports 1, 2, 3, 5, 10, 15, 30, 60, 120, 180 and 360-minute
+sampling; the longer five-minute input supports 5, 10, 15, 30, 60, 120, 180 and
+360-minute sampling. Nonoverlapping blocks keep a fixed session-open anchor.
+Every base-grid mark inside a block, including both endpoints, must be observed.
+A missing mark rejects the affected block, while later blocks keep their
+original anchors. There is no gap filling, overnight bridging or partial block.
+
+SPY uses 09:30-15:30 New York time; currencies use 00:00-18:00 UTC on weekdays.
+The shared spans let every tested frequency divide the session exactly.
+Annualized sample volatility is
+
+$$\widehat\sigma_M=\operatorname{sd}_{n-1}(r^{(M)})
+\sqrt{\frac{15120H}{M}},\qquad H_{\rm SPY}=6.5,\quad H_{\rm FX}=24.$$
+
+As with the hourly results, annualization extrapolates the observed within-day
+variance rate to the stated active hours. These estimates do not include the
+equity overnight return. The audit below aggregates daily availability by asset,
+source resolution and sampling interval. A date with no mark inside the selected
+span does not establish an observed session.
+""")
+    code(r"""
+minute_signatures = table('minute_signatures')
+minute_audit = pd.read_csv(OUT / 'minute_session_audit.csv')
+display(minute_audit.groupby(['asset', 'base_minutes', 'interval_minutes']).agg(
+    observed_sessions=('session', 'nunique'),
+    candidate_blocks=('candidate_blocks', 'sum'),
+    valid_blocks=('valid_blocks', 'sum'),
+    rejected_blocks=('rejected_blocks', 'sum')).reset_index())
+figure('minute_signature_1m.png')
+figure('minute_signature_5m.png')
+""")
+    md(r"""
+Missing marks change the sample composition across frequencies. For example,
+EUR/USD's one-minute source supplies valid one-minute returns on 21 days, but
+only 47 complete six-hour blocks across 16 days. A coarse-frequency slope can
+therefore reflect both sampling frequency and the retained observations.
+The one-minute and five-minute full-history curves also cover different dates;
+their difference cannot isolate a source-resolution effect.
+
+**Six-month rolling boundary.** Neither minute history spans six calendar
+months. The requested six-month rolling mean, median and quartiles remain
+available at 60, 120, 180 and 360 minutes from the longer hourly dataset in
+Section 4. They are unavailable at minute-only frequencies with the retrieved
+inputs. Shorter windows are not relabeled as six-month windows.
+
+### 5.2. Compare both sources on identical five-minute blocks
+
+The following check matches valid five-minute returns by their exact start and
+end timestamps. It compares five-minute returns constructed from one-minute
+opens with returns from native five-minute opens. This holds dates, clock times,
+frequency and annualization fixed, separating feed consistency from the
+different lengths of the full histories.
+""")
+    code(r"""
+minute_comparison = table('minute_comparison')
+figure('minute_comparison.png')
+""")
+    md(r"""
+All three assets have identical stored returns on the matched blocks: the
+return correlations are one and mean absolute differences are zero. This is an
+internal consistency check on Yahoo's two resolutions, not independent vendor
+validation. The short minute sample provides the requested finer-frequency
+evidence, but does not establish a persistent tradable effect. The daily
+2020-2025 trading specification below is not selected using these later data.
+
+## 6. Frequency-arbitrage implementation
 
 The supplied *Option Delta Hedging* reference motivates inverse-price holdings
 and comparing two rebalancing frequencies. With fixed notional $N$, the combined
@@ -284,7 +381,7 @@ strategy = table('strategy_metrics')
 figure('strategy_equity.png')
 """)
     md(r"""
-### 5.1. Transaction costs and specification sensitivity
+### 6.1. Transaction costs and specification sensitivity
 
 The main metrics compare both orientations. The sensitivity table varies the
 LVD slow frequency across 5, 10 and 20 days, with the fast frequency held at
@@ -305,7 +402,7 @@ sensitivity = table('strategy_sensitivity')
 figure('strategy_costs.png')
 """)
     md(r"""
-## 6. Investment decision and limitations
+## 7. Investment decision and limitations
 
 The practical decision rests on realized net cash flows and their sensitivity
 to costs, rather than the visual distance between signature curves. The
@@ -347,12 +444,14 @@ overnight equity returns in the intraday estimator, sampling-origin variation,
 overlapping rolling windows, sparse coarse-frequency estimates, and the
 stylized cost and financing model. No result is a promised future return.
 
-## 7. Reproducibility and verification
+## 8. Reproducibility and verification
 
-`src/analysis.py` contains the estimators and trading ledger.
+`src/analysis.py` contains the daily/hourly estimators and trading ledger;
+`src/minute_analysis.py` contains the observed minute-block estimators.
 `scripts/run_analysis.py` builds the tables and figures.
-Focused tests check estimator arithmetic, session boundaries, lagged execution,
-turnover and cash-flow accounting using explicitly synthetic examples.
+The 45 focused tests check estimator arithmetic, session boundaries, lagged
+execution, turnover, cash-flow accounting, input integrity and minute-gap
+handling using explicitly synthetic examples.
 The figures embedded here are generated exhibits, and the repository contains
 no downloaded market-data files. Input coverage and source provenance are
 recorded by the acquisition pipeline. The LaTeX report and its figures provide
@@ -361,7 +460,9 @@ a standalone submission artifact.
     code(r"""
 required = ['daily_signatures', 'daily_distribution', 'intraday_signatures',
             'intraday_distribution', 'data_audit', 'strategy_metrics',
-            'strategy_sensitivity', 'intraday_session_sensitivity']
+            'strategy_sensitivity', 'intraday_session_sensitivity',
+            'minute_coverage', 'minute_signatures', 'minute_comparison',
+            'minute_session_audit']
 for name in required:
     assert (OUT / (name + '.csv')).is_file()
 print(f'Verified {len(required)} generated result tables and all displayed figures.')
